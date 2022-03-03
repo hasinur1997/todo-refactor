@@ -1,58 +1,70 @@
-import React from "react";
+function TodoItem(props) {
 
-class TodoItem extends React.Component {
-  constructor(props) {
-    super(props);
+    const {title, complete, id, onComplete, onDelete} = props;
 
-    this._onCompleteCheck = this._onCompleteCheck.bind(this);
-  }
+    // Complete Check
+    const _onCompleteCheck = (event) => {
+        console.log("Complete Check" + id)
+        onComplete(id)
+    }
 
-  _onCompleteCheck(event) {
-    const { id, onComplete } = this.props;
+    // Delete functionality
+    const _onDelete = () => {
+        if (window.confirm("Are you sure want to delete this ?")) {
+            onDelete(id)
+        }
+    }
+    
+    // Render Checkbox
+    const _renderCheckbox = () => {
+        const attrs = {};
+        attrs.checked = complete ? true : false;
+    
+        return (
+          <div className="col-2 todo-item__checkbox">
+            <input
+              type="checkbox"
+              className="form-control"
+              onChange={_onCompleteCheck}
+              {...attrs}
+            />
+          </div>
+        );
+      }
+    
+    // Render title
+    const _renderTitle = () => {    
+        return (
+          <div className="col-7 todo-item__title">
+            <h3>{title}</h3>
+          </div>
+        );
+    }
 
-    onComplete(id);
-  }
-
-  _renderCheckbox() {
-    const { complete } = this.props;
-    const attrs = {};
-
-    if (complete) {
-      attrs.checked = "checked";
+    // Render delete button
+    const _renderDeleteButton = () => {
+        return (
+            <div className="col-2">
+                <button 
+                    className="btn btn-danger"
+                    onClick={_onDelete}
+                >
+                    Delete
+                </button>
+            </div>
+        )
     }
 
     return (
-      <div className="col-2 todo-item__checkbox">
-        <input
-          type="checkbox"
-          className="form-control"
-          onChange={this._onCompleteCheck}
-          {...attrs}
-        />
-      </div>
-    );
-  }
-
-  _renderTitle() {
-    const { title } = this.props;
-
-    return (
-      <div className="col-10 todo-item__title">
-        <h3>{title}</h3>
-      </div>
-    );
-  }
-
-  render() {
-    return (
-      <li className="list-group-item todo-item">
-        <div className="row">
-          {this._renderCheckbox()}
-          {this._renderTitle()}
-        </div>
-      </li>
-    );
-  }
+        <li className="list-group-item todo-item">
+            <div className="row">
+                {_renderCheckbox()}
+                {_renderTitle()}
+                {_renderDeleteButton()}
+            </div>
+        </li> 
+    )
 }
 
 export default TodoItem;
+

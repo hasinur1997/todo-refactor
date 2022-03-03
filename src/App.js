@@ -1,137 +1,129 @@
-import React, { Component } from "react";
+import { useEffect, useState } from "react";
 
 import TodoList from "./components/TodoList";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+function App() {
+    // Todo title
+    const [title, setTitle] = useState('');
 
-    this.state = {
-      title: "",
-      todos: [],
-    };
+    // Todo list
+    const [todos, setTodos] = useState(() => {
+        // Get todos from local storage
+        const saveTodos = localStorage.getItem('et-todos');
 
-    this._onChangeTitle = this._onChangeTitle.bind(this);
-    this._onClickAdd = this._onClickAdd.bind(this);
-    this._onEnterPressAdd = this._onEnterPressAdd.bind(this);
-    this._onCompleteTodo = this._onCompleteTodo.bind(this);
-  }
+        if (saveTodos) {
+            return JSON.parse(saveTodos);
+        }
 
-  componentDidMount() {
-    const todos = localStorage.getItem("et-todos");
+        return [];
+    })
 
-    if (!todos) {
-      return;
+    // Use effect to run once the component mounts
+    useEffect(() => {
+        localStorage.setItem('et-todos', JSON.stringify(todos));
+    }, [todos])
+
+    // Set title on change event
+    const _onChangeTitle = (event) => {
+        const title = event.target.value;
+        setTitle(title)
     }
 
-    this.setState({
-      todos: JSON.parse(todos),
-    });
-  }
-
-  componentDidUpdate() {
-    localStorage.setItem("et-todos", JSON.stringify(this.state.todos));
-  }
-
-  _onCompleteTodo(id) {
-    const { todos } = this.state;
-
-    todos[id].complete = !todos[id].complete;
-
-    this.setState({
-      todos,
-    });
-  }
-
-  _onChangeTitle(event) {
-    const target = event.target;
-    const value = target.value;
-
-    this.setState({
-      title: value,
-    });
-  }
-
-  _onEnterPressAdd(event) {
-    if (13 === event.keyCode) {
-      this._onClickAdd();
+    // Add todo on enter press
+    const _onEnterPressAdd = (event) => {
+        if (13 === event.keyCode) {
+            _onClickAdd()
+        }
     }
-  }
 
-  _onClickAdd(event) {
-    const { title, todos } = this.state;
+    // Creae new todos
+    const _onClickAdd = (event) => {
+        // Don't submit if the input is an empty string
+        if (title !== "") {
+            
+            setTodos([
+                ...todos,
+                {
+                    id: todos.length,
+                    title: title,
+                    complete: false
+                }
+            ])
+        }
 
-    todos.push({
-      title,
-      compete: false,
-    });
+        setTitle("")
+    }
 
-    this.setState({
-      title: "",
-      todos,
-    });
-  }
+    // On completed
+    const _onCompleteTodo = (id) => {
+        const updatedTodo = [...todos]
+        updatedTodo[id].complete = !updatedTodo[id].complete;
+        setTodos(updatedTodo)
+    }
 
-  _renderHeader() {
-    const { title } = this.state;
+    // On delete
+    const _onDeleteTodo = (id) => {
+        const updatedTodo = [...todos]
 
-    return (
-      <div className="todos-app-header card-header">
-        <h2>ToDo</h2>
-        <div className="input-group">
-          <input
-            type="text"
-            name="title"
-            placeholder="What do you need to do?"
-            className="form-control add-new-todo"
-            onChange={this._onChangeTitle}
-            onKeyDown={this._onEnterPressAdd}
-            value={title}
-          />
-          <div className="input-group-append">
-            <button
-              className="btn btn-success"
-              type="button"
-              onClick={this._onClickAdd}
-            >
-              <span
-                className=""
-                style={{
-                  fontSize: "24px",
-                  lineHeight: "16px",
-                }}
-              >
-                +
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        updatedTodo.splice(id, 1)
 
-  render() {
-    const { todos } = this.state;
+        setTodos([...updatedTodo])
+    }
 
-    return (
-      <div className="container">
-        <div className="row">
-          <div className="col col-md-6 offset-md-3 mt-2">
-            <div className="todos-app card">
-              {this._renderHeader()}
-              <div className="card-body">
-                <TodoList
-                  todos={todos}
-                  onComplete={this._onCompleteTodo}
-                  onDelete={this._onDeleteTodo}
-                />
-              </div>
+    const _renderHeader = () => {
+        return (
+            <div className="todos-app-header card-header">
+                <h2>ToDo</h2>
+                <div className="input-group">
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="What do you need to do?"
+                        className="form-control add-new-todo"
+                        onChange={_onChangeTitle}
+                        onKeyDown={_onEnterPressAdd}
+                        value={title}
+                    />
+                    <div className="input-group-append">
+                        <button
+                        className="btn btn-success"
+                        type="button"
+                        onClick={_onClickAdd}
+                        >
+                        <span
+                            className=""
+                            style={{
+                            fontSize: "24px",
+                            lineHeight: "16px",
+                            }}
+                        >
+                            +
+                        </span>
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
+        )
+    }
+
+    return (
+        <div className="container">
+            <div className="row">
+                <div className="col col-md-6 offset-md-3 mt-2">
+                    <div className="todos-app card">
+                    {_renderHeader()}
+                        <div className="card-body">
+                            <TodoList
+                            todos={todos}
+                            onComplete={_onCompleteTodo}
+                            onDelete={_onDeleteTodo}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    );
-  }
+    )
 }
 
 export default App;
